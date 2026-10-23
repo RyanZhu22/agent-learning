@@ -1,0 +1,12 @@
+[project]
+name = "agent-learning"
+version = "0.1.0"
+description = "用 Python 学习 Agent：知识库与工单助手"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "chromadb>=1,<2",
+    "fastembed>=0.7,<1",
+    "openai>=2,<3",
+    "pydantic>=2,<3",
+    "python-dotenv>=1,<2",
+]

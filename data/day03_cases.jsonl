@@ -1,0 +1,10 @@
+{"id":"D3-01","question":"邮件通知的SMTP端口是多少，使用哪种加密方式？","expected_source":"mail_notifications.md","expected_fact":"587"}
+{"id":"D3-02","question":"忘记密码后，重置链接有效多久？","expected_source":"password_reset.md","expected_fact":"10分钟"}
+{"id":"D3-03","question":"连续输错密码导致账号锁定，需要等待多久？","expected_source":"login_lock.md","expected_fact":"15分钟"}
+{"id":"D3-04","question":"CSV单次导出最多支持多少行？","expected_source":"export_limits.md","expected_fact":"10000"}
+{"id":"D3-05","question":"上传PDF、Markdown或TXT时，单个文件最大多大？","expected_source":"file_upload.md","expected_fact":"20MB"}
+{"id":"D3-06","question":"每个工作区的业务API每分钟最多可以请求多少次？","expected_source":"api_rate_limit.md","expected_fact":"60"}
+{"id":"D3-07","question":"工作区的每日备份会保留多久？","expected_source":"backup_restore.md","expected_fact":"7天"}
+{"id":"D3-08","question":"Webhook通知投递失败后最多重试多少次？","expected_source":"webhook_retry.md","expected_fact":"5次"}
+{"id":"D3-09","question":"申请退款后，款项需要几个工作日到账？","expected_source":null,"expected_fact":null}
+{"id":"D3-10","question":"如何配置钉钉扫码登录云工单工作台？","expected_source":null,"expected_fact":null}

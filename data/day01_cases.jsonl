@@ -1,0 +1,5 @@
+{"id":"D1-01","question":"如何重置账号密码？","expected_intent":"knowledge_qa"}
+{"id":"D1-02","question":"查询工单 T1001 的状态","expected_intent":"ticket_query"}
+{"id":"D1-03","question":"工单 T1002 已经处理好了吗？","expected_intent":"ticket_query"}
+{"id":"D1-04","question":"系统一直返回 500 错误，请帮我报修","expected_intent":"incident_report"}
+{"id":"D1-05","question":"产品支持哪些文档格式？","expected_intent":"knowledge_qa"}

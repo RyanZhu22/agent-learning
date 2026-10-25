@@ -2,7 +2,7 @@
 
 以 [Agent-Learning-Hub](https://github.com/datawhalechina/Agent-Learning-Hub) 为能力清单，以 [Hello-Agents](https://github.com/datawhalechina/hello-agents) 为主教材。目标是逐步完成一个知识库与工单助手。
 
-每天约 3 小时。目前已提供第 1–4 天的练习，其余功能随学习推进。
+每天约 3 小时。目前已提供第 1–6 天的练习，其余功能随学习推进。
 
 | 日期 | 实践目标 |
 | --- | --- |
@@ -129,6 +129,67 @@ uv run day04_agent.py "我要报修：邮件通知失败，请帮我整理工单
 再按第 4 天讲义输入完整的描述、复现步骤、期望与实际结果、发生时间。
 day04_draft.py 定义六个草稿字段及整理函数；标题由模型概括，其余字段来自用户。
 草稿仅展示，不保存或实际建单；跨命令没有历史，补充信息时要重新提供完整描述。
+
+## 第 5 天：确认后本地建单
+
+阅读 [第 5 天讲义](docs/day05.md)。今天把第 4 天的六字段草稿保存到 SQLite，再由用户核对、确认后创建本地工单。
+先用当前 Python 运行完全离线的演示和测试，不需要模型密钥或知识库索引：
+
+```powershell
+python day05_agent.py demo
+python -m unittest discover -s tests -v
+```
+
+演示使用临时数据库，观察取消、确认、重复确认和重新打开数据库后查询的结果。
+项目的正式依赖环境仍是 Python 3.12 与 `uv sync`；上述离线路径也可在现有 Python 3.11 环境运行。
+配置好项目环境后可使用 `uv run` 运行同样的命令。
+
+用提供的 JSON 样例保存草稿，再按输出编号检查与确认：
+
+```powershell
+uv run day05_agent.py prepare --from-json data/day05_draft.json
+uv run day05_agent.py show Dxxx
+uv run day05_agent.py confirm Dxxx
+uv run day05_agent.py get Nxxx
+```
+
+把 `Dxxx`、`Nxxx` 换成实际输出的编号。`confirm` 会先展示保存的完整草稿，尚未提交时只有终端输入精确短语 `确认创建 Dxxx` 才写入工单；其他输入取消。
+已提交草稿再次运行 `confirm` 会直接返回原工单，不再要求输入。新建草稿代表新的建单意图，即使内容相同也不按内容合并。
+
+也可以让 DeepSeek 整理用户描述：`uv run day05_agent.py prepare "完整报修描述"`。
+这条路径调用真实 API；信息不足时追问，完整时仅保存并展示草稿，仍需单独确认。
+默认数据库是 `artifacts/day05_tickets.sqlite3`，可在子命令前用 `--db <path>` 指定路径；里面是本机学习用的草稿和工单。
+`day05_agent.py` 负责命令与确认，`day05_store.py` 负责事务、持久化和按草稿编号防重复。
+第 4 天入口继续负责知识库问答，第 5 天聚焦写入流程，尚未接入网页或企业真实工单系统。
+
+## 第 6 天：FastAPI 接口、网页与请求日志
+
+阅读 [第 6 天讲义](docs/day06.md)。通过本地网页操作第 5 天的草稿和工单，继续遵守“保存草稿 → 人工核对确认 → 创建工单”的规则。
+本机新增依赖已安装，在 Windows PowerShell 中启动服务即可；新环境请先执行 `uv sync`。
+
+```powershell
+.\.venv\Scripts\python.exe day06_api.py
+```
+
+打开 [本地练习页面](http://127.0.0.1:8000/)，先用六字段离线样例保存草稿，取消一次，再确认创建并测试重复提交。
+载入和保存离线样例不调用模型；页面的自然语言整理功能会调用真实 DeepSeek API，仍只生成待确认草稿。
+首次确认返回新工单，重复确认同一草稿返回原工单。页面中的取消会收起草稿详情和确认表单，保留原草稿，并将编号填入查询框以便重新载入。
+
+默认复用 `artifacts/day05_tickets.sqlite3`，因此可以在页面中查询前一天创建的本地工单。
+使用 `--db artifacts/day06_practice.sqlite3` 可选择独立练习数据库；端口被占用时使用 `--port 8001`，并将浏览器地址改为 `http://127.0.0.1:8001/`。
+保持服务终端运行，按 `Ctrl+C` 停止。服务停止后，SQLite 中的数据仍保留。
+
+- [健康检查](http://127.0.0.1:8000/health)：返回 `{"status":"ok"}`，不调用模型。
+- [自动接口文档](http://127.0.0.1:8000/docs)：查看 JSON 请求和响应，并手动尝试接口。
+- `artifacts/day06_api.log`：每行一条 JSON 请求日志，使用 `request_id` 关联响应与日志，不记录正文和密钥。
+
+`day06_api.py` 复用第 5 天的模型整理和存储逻辑，`static/day06.html` 负责页面交互。
+网页仅面向本机单用户学习，尚未实现账号权限或公网部署；工单查询接口读取 `N` 开头的持久化记录，第 4 天知识库问答仍使用原命令入口。
+接口离线测试使用临时数据库和模拟模型：
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
 ## 参考资料
 

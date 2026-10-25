@@ -5,8 +5,11 @@ description = "用 Python 学习 Agent：知识库与工单助手"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "chromadb>=1,<2",
+    "fastapi>=0.115,<1",
     "fastembed>=0.7,<1",
+    "httpx2>=2,<3",
     "openai>=2,<3",
     "pydantic>=2,<3",
     "python-dotenv>=1,<2",
+    "uvicorn>=0.30,<1",
 ]

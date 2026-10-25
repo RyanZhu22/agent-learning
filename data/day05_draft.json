@@ -1,0 +1,8 @@
+{
+  "title": "测试邮件发送超时",
+  "description": "邮件通知功能异常，测试邮箱收不到测试邮件。",
+  "reproduction_steps": "进入通知设置，点击发送测试邮件。",
+  "expected_result": "测试邮箱收到邮件。",
+  "actual_result": "页面提示连接超时，邮箱未收到邮件。",
+  "occurred_at": "2026年10月24日10:00，UTC+8（虚构练习时间）"
+}

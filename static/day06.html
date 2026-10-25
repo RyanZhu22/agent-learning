@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>报修工作台 · Day 06</title>
+  <style>
+    :root { --ink:#17363a; --muted:#657779; --line:#dce6e4; --paper:#fff; --page:#f4f7f5; --teal:#12645c; --teal-soft:#e5f2ed; --orange:#9b5518; --orange-soft:#fff4e5; --red:#a83f35; --red-soft:#fff0ec; --radius:18px; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--page); font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; font-size:15px; line-height:1.65; }
+    button,input,textarea { font:inherit; }
+    button,input,textarea { -webkit-tap-highlight-color:transparent; }
+    button { cursor:pointer; }
+    button:disabled { cursor:not-allowed; }
+    [hidden] { display:none !important; }
+    :focus-visible { outline:3px solid #80b8ac; outline-offset:3px; }
+    .shell { width:min(1180px,calc(100% - 64px)); margin:auto; }
+    .topbar { border-bottom:1px solid var(--line); background:#ffffffb8; }
+    .topbar-inner { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { display:flex; align-items:center; gap:12px; font-size:17px; font-weight:750; letter-spacing:.04em; }
+    .brand-mark { display:grid; place-items:center; width:36px; height:36px; background:var(--teal); border-radius:11px; color:white; }
+    .brand-mark svg { width:21px; height:21px; }
+    .connection { display:flex; gap:8px; align-items:center; font-size:12px; color:var(--muted); }
+    .dot { width:7px; height:7px; border-radius:50%; background:#a8b5b2; flex:none; }
+    .connection[data-state="ok"] .dot { background:#329477; }
+    .connection[data-state="error"] .dot { background:#be7752; }
+    .hero { padding:45px 0 28px; }
+    .eyebrow { display:flex; align-items:center; gap:10px; color:var(--teal); font-size:12px; font-weight:700; letter-spacing:.12em; }
+    .eyebrow span { border:1px solid #bad5ca; border-radius:5px; padding:1px 7px; font-size:11px; }
+    h1 { margin:13px 0 10px; font-size:clamp(27px,3.5vw,39px); line-height:1.4; font-weight:750; letter-spacing:-.04em; }
+    .intro { margin:0; color:var(--muted); max-width:720px; }
+    .steps { display:flex; gap:0; margin:26px 0 0; padding:0; list-style:none; max-width:745px; }
+    .steps li { display:flex; align-items:center; flex:1; gap:9px; font-size:13px; color:#506b6b; white-space:nowrap; }
+    .steps li:not(:last-child)::after { content:""; height:1px; flex:1; background:#cfddD7; margin:0 15px 0 7px; }
+    .step-number { display:grid; place-items:center; width:25px; height:25px; flex:none; border:1px solid #c4d9d0; border-radius:50%; color:var(--teal); background:#edf5ef; font-size:12px; font-weight:700; }
+    .workspace { display:grid; grid-template-columns:minmax(0,0.87fr) minmax(0,1.13fr); gap:23px; align-items:start; padding-bottom:24px; }
+    .column { display:grid; gap:23px; min-width:0; }
+    .card { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 4px 18px #193d2f03; min-width:0; overflow:hidden; }
+    .card-body { padding:26px; }
+    .card-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:21px; }
+    .section-number { font-size:12px; font-weight:750; line-height:27px; color:var(--teal); border-bottom:2px solid #a8cebd; }
+    h2 { font-size:19px; line-height:1.5; margin:0; font-weight:750; letter-spacing:-.02em; }
+    .subtext { font-size:13px; color:var(--muted); margin:4px 0 0; }
+    label { display:block; margin:0 0 9px; font-size:13px; font-weight:650; }
+    textarea,input[type="text"] { width:100%; color:var(--ink); border:1px solid #ccd9d5; background:#fcfdfc; border-radius:10px; padding:12px 13px; transition:border-color .15s,box-shadow .15s; }
+    textarea { resize:vertical; min-height:192px; line-height:1.8; }
+    textarea::placeholder,input::placeholder { color:#8b9997; }
+    textarea:focus,input[type="text"]:focus { outline:none; border-color:#458d7d; box-shadow:0 0 0 3px #dceee6; }
+    .hint { margin:8px 0 0; color:var(--muted); font-size:12px; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:18px; }
+    .btn { display:inline-flex; justify-content:center; align-items:center; min-height:43px; gap:7px; border:1px solid transparent; border-radius:9px; padding:9px 16px; font-size:13px; font-weight:650; transition:background .15s,border-color .15s; }
+    .btn-primary { color:#fff; background:var(--teal); }
+    .btn-primary:hover:enabled { background:#0c5049; }
+    .btn-primary:disabled { background:#a7bdb7; color:#f8faf9; }
+    .btn-secondary { background:#fff; border-color:#cfddd7; color:var(--ink); }
+    .btn-secondary:hover:enabled { background:#f0f6f2; border-color:#99b7a9; }
+    .btn-secondary:disabled { opacity:.45; }
+    .btn-plain { border-color:transparent; background:transparent; color:var(--muted); padding-left:8px; padding-right:8px; }
+    .btn-plain:hover:enabled { color:var(--ink); background:#f0f4f1; }
+    .btn-plain:disabled { opacity:.45; }
+    .model-note { display:flex; gap:8px; margin-top:19px; padding-top:17px; border-top:1px solid #eef1ef; font-size:12px; color:var(--muted); }
+    .model-note svg { width:15px; height:15px; flex:none; margin-top:3px; color:#728e82; }
+    .notice { border:1px solid #c9dfd4; background:#edf6ef; color:#2b6554; border-radius:11px; padding:13px 16px; margin:0 0 23px; font-size:13px; overflow-wrap:anywhere; }
+    .notice p { margin:0; white-space:pre-wrap; }
+    .notice p + p { margin-top:4px; }
+    .notice[data-kind="error"] { border-color:#edc8bf; color:var(--red); background:var(--red-soft); }
+    .notice[data-kind="warning"] { border-color:#ecd5b0; color:#81551d; background:var(--orange-soft); }
+    .request-id { font-family:Consolas,monospace; font-size:11px; opacity:.85; }
+    .empty-state { min-height:312px; display:flex; align-items:center; justify-content:center; text-align:center; padding:34px 30px; background:linear-gradient(150deg,#fff,#f9fbf8); border-top:1px solid #edf2ee; }
+    .empty-icon { display:grid; place-items:center; width:58px; height:58px; border-radius:18px; background:#edf4ee; color:#6f9684; margin:0 auto 17px; }
+    .empty-icon svg { width:27px; height:27px; }
+    .empty-state strong { font-size:15px; font-weight:650; }
+    .empty-state p { font-size:13px; color:var(--muted); max-width:260px; margin:8px auto 0; }
+    .draft-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:17px; }
+    .record-label { color:var(--muted); font-size:11px; margin-bottom:3px; }
+    .record-id { font-family:Consolas,"Microsoft YaHei",monospace; font-size:15px; font-weight:650; overflow-wrap:anywhere; }
+    .badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:650; white-space:nowrap; padding:4px 9px; border-radius:6px; border:1px solid #ead7b5; background:var(--orange-soft); color:var(--orange); }
+    .badge.submitted { border-color:#c4ded2; background:var(--teal-soft); color:var(--teal); }
+    .fields { margin:0; }
+    .field { padding:13px 0; border-top:1px solid #e8eeea; }
+    .fields dt { font-size:11px; color:var(--muted); margin-bottom:4px; }
+    .fields dd { margin:0; font-size:13px; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.8; }
+    .fields .field:first-child dd { font-size:16px; font-weight:650; }
+    .confirm-panel { background:#f6f9f5; border-top:1px solid #dfE9e0; padding:23px 26px 25px; }
+    .confirm-panel h3 { margin:0 0 6px; font-size:14px; }
+    .confirm-panel .subtext { margin-bottom:16px; }
+    .check-label { display:flex; align-items:flex-start; gap:9px; font-size:13px; font-weight:500; cursor:pointer; }
+    input[type="checkbox"] { width:16px; height:16px; margin:3px 0 0; accent-color:var(--teal); flex:none; }
+    .phrase-label { font-size:12px; font-weight:400; margin:15px 0 7px; }
+    .phrase { display:block; color:var(--teal); font:600 13px/1.7 Consolas,"Microsoft YaHei",monospace; overflow-wrap:anywhere; margin-top:3px; user-select:all; }
+    .confirm-actions { margin-top:14px; }
+    .already-created { border-top:1px solid var(--line); background:#f0f7f2; padding:21px 26px; }
+    .already-created p { font-size:13px; color:#436b5a; margin:0; }
+    .lookup { display:flex; gap:9px; align-items:stretch; }
+    .lookup input { min-width:0; }
+    .lookup .btn { flex:none; }
+    .ticket-strip { display:flex; align-items:center; gap:9px; background:#edf6ef; border-bottom:1px solid #dce9df; padding:12px 26px; color:#36735c; font-size:12px; }
+    .ticket-strip svg { height:16px; width:16px; flex:none; }
+    .ticket-meta { display:flex; flex-wrap:wrap; gap:6px 20px; margin:0 0 17px; font-size:11px; color:var(--muted); }
+    .ticket-meta span { overflow-wrap:anywhere; }
+    .ticket-fields .field { padding:10px 0; }
+    .loading { display:flex; gap:9px; align-items:center; font-size:13px; color:var(--teal); margin:0 0 20px; }
+    .spinner { width:15px; height:15px; border:2px solid #c9dfd3; border-top-color:var(--teal); border-radius:50%; animation:spin .75s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    footer { display:flex; justify-content:space-between; gap:12px; border-top:1px solid var(--line); padding:18px 0 28px; color:#7d8e86; font-size:11px; }
+    @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
+    @media (max-width:800px) { .shell { width:calc(100% - 36px); } .workspace { grid-template-columns:1fr; gap:18px; } .column { gap:18px; } .hero { padding-top:31px; } .steps { margin-top:23px; margin-bottom:3px; } .steps li { font-size:11px; gap:7px; } .steps li:not(:last-child)::after { margin:0 8px; } .card-body { padding:23px; } .empty-state { min-height:230px; } }
+    @media (max-width:440px) { .shell { width:calc(100% - 28px); } .topbar-inner { min-height:66px; gap:10px; } .brand { font-size:15px; gap:9px; } .brand-mark { width:31px; height:31px; border-radius:9px; } .connection { font-size:10px; gap:5px; } h1 { font-size:28px; } .intro { font-size:13px; } .steps li { flex-wrap:wrap; gap:5px; font-size:10px; } .steps li:not(:last-child)::after { display:none; } .step-number { width:22px; height:22px; } .card-body { padding:20px; } .confirm-panel,.already-created { padding:20px; } .actions .btn { flex:1; } .lookup .btn { padding-left:12px; padding-right:12px; } footer { flex-direction:column; gap:3px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 4h10a2 2 0 0 1 2 2v14l-4-2-3 2-3-2-4 2V6a2 2 0 0 1 2-2Z"/><path d="m9 10 2 2 4-4M9 15h6"/></svg></span>报修工作台</div>
+      <div id="connection" class="connection" data-state="loading" role="status"><span class="dot"></span><span id="connection-text">正在连接本地服务</span></div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow"><span>DAY 06</span>从命令行到网页</div>
+      <h1 id="page-title">描述问题，核对后再提交。</h1>
+      <p class="intro">先把报修信息整理成草稿。确认内容准确后，创建一张可查询的本地工单。</p>
+      <ol class="steps" aria-label="报修流程"><li><span class="step-number">1</span>准备草稿</li><li><span class="step-number">2</span>核对并确认</li><li><span class="step-number">3</span>查看工单</li></ol>
+    </section>
+    <div id="loading" class="loading" role="status" hidden><span class="spinner" aria-hidden="true"></span><span id="loading-text">正在处理…</span></div>
+    <div id="notice" class="notice" role="status" hidden><p id="notice-message"></p><p id="notice-request" class="request-id" hidden></p></div>
+    <div class="workspace">
+      <div class="column">
+        <section class="card" aria-labelledby="prepare-title">
+          <div class="card-body">
+            <div class="card-head"><span class="section-number" aria-hidden="true">01</span><div><h2 id="prepare-title">说说遇到的问题</h2><p class="subtext">描述越完整，整理后的草稿越准确。</p></div></div>
+            <form id="prepare-form">
+              <label for="question">报修描述</label>
+              <textarea id="question" name="question" maxlength="5000" placeholder="例如：邮件通知功能异常。进入通知设置，点击发送测试邮件，期望邮箱收到邮件，实际页面提示连接超时。发生时间：2026 年 10 月 24 日 10:00，UTC+8。" required></textarea>
+              <p class="hint">请包含具体问题、复现步骤、期望结果、实际结果和发生时间。</p>
+              <div class="actions"><button id="prepare-button" class="btn btn-primary" type="submit">整理草稿 <span aria-hidden="true">→</span></button><button id="sample-button" class="btn btn-secondary" type="button">使用离线示例</button></div>
+            </form>
+            <div class="model-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 11v5m0-9v1"/></svg><span>“整理草稿”会调用真实模型；离线示例使用固定练习内容。两种方式都只保存草稿。</span></div>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="lookup-title">
+          <div class="card-body">
+            <div class="card-head"><span class="section-number" aria-hidden="true">↗</span><div><h2 id="lookup-title">找回已有记录</h2><p class="subtext">重新打开页面后，也可以继续查看。</p></div></div>
+            <form id="lookup-form">
+              <label for="lookup-id">草稿编号或工单编号</label>
+              <div class="lookup"><input id="lookup-id" type="text" name="record_id" placeholder="输入 D 开头或 N 开头的完整编号" maxlength="100" autocomplete="off" required><button id="lookup-button" class="btn btn-secondary" type="submit">查询</button></div>
+              <p class="hint">D 开头是草稿，N 开头是已创建的工单。</p>
+            </form>
+          </div>
+        </section>
+      </div>
+      <div class="column">
+        <section class="card" aria-labelledby="draft-title">
+          <div class="card-body" style="padding-bottom:20px">
+            <div class="card-head" style="margin-bottom:0"><span class="section-number" aria-hidden="true">02</span><div><h2 id="draft-title">核对报修草稿</h2><p class="subtext">模型整理的内容，需要由你逐项确认。</p></div></div>
+          </div>
+          <div id="draft-empty" class="empty-state"><div><div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5h11l5 5v17H7V7a2 2 0 0 1 2-2Z"/><path d="M19 5v6h6M11 16h10M11 21h7"/></svg></div><strong>草稿将在这里显示</strong><p>先整理一段报修描述，或使用离线示例体验完整流程。</p></div></div>
+          <div id="draft-content" hidden>
+            <div class="card-body" style="padding-top:2px;padding-bottom:14px">
+              <div class="draft-heading"><div><div class="record-label">草稿编号</div><div id="draft-id" class="record-id"></div></div><span id="draft-status" class="badge"></span></div>
+              <dl id="draft-fields" class="fields"></dl>
+            </div>
+            <form id="confirm-form" class="confirm-panel" hidden>
+              <h3>内容准确后，再创建工单</h3>
+              <p class="subtext">确认会保存一张本地工单。请先核对上方六个字段。</p>
+              <label class="check-label" for="review-checkbox"><input id="review-checkbox" type="checkbox"><span>我已核对以上内容，确认创建本地工单</span></label>
+              <label class="phrase-label" for="confirmation-text">请准确输入以下确认短语：<span id="expected-phrase" class="phrase"></span></label>
+              <input id="confirmation-text" type="text" autocomplete="off" spellcheck="false" placeholder="在这里输入确认短语">
+              <div class="actions confirm-actions"><button id="confirm-button" class="btn btn-primary" type="submit" disabled>确认创建工单</button><button id="cancel-button" class="btn btn-plain" type="button">取消本次创建</button></div>
+            </form>
+            <div id="submitted-panel" class="already-created" hidden><p>这份草稿已提交。再次查看会返回原工单。</p><div class="actions" style="margin-top:12px"><button id="existing-ticket-button" class="btn btn-secondary" type="button">查看已创建工单</button></div></div>
+          </div>
+        </section>
+        <section id="ticket-card" class="card" aria-labelledby="ticket-title" hidden>
+          <div class="ticket-strip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><span id="ticket-result-message">本地工单已创建</span></div>
+          <div class="card-body">
+            <div class="card-head"><span class="section-number" aria-hidden="true">03</span><div><h2 id="ticket-title">查看工单</h2><p class="subtext">工单已保存，可以通过编号再次查询。</p></div></div>
+            <div class="draft-heading"><div><div class="record-label">工单编号</div><div id="ticket-id" class="record-id"></div></div><span id="ticket-status" class="badge submitted"></span></div>
+            <div class="ticket-meta"><span id="ticket-draft-id"></span><span id="ticket-created-at"></span></div>
+            <dl id="ticket-fields" class="fields ticket-fields"></dl>
+          </div>
+        </section>
+      </div>
+    </div>
+    <footer><span>Day 06 · Agent 学习项目</span><span>草稿待确认 → 明确确认 → 工单待处理</span></footer>
+  </main>
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    const fieldLabels = [
+      ["title", "报修标题"],
+      ["description", "问题描述"],
+      ["reproduction_steps", "复现步骤"],
+      ["expected_result", "期望结果"],
+      ["actual_result", "实际结果"],
+      ["occurred_at", "发生时间"]
+    ];
+    const offlineSample = {
+      title: "测试邮件发送超时",
+      description: "邮件通知功能异常，测试邮箱收不到测试邮件。",
+      reproduction_steps: "进入通知设置，点击发送测试邮件。",
+      expected_result: "测试邮箱收到邮件。",
+      actual_result: "页面提示连接超时，邮箱未收到邮件。",
+      occurred_at: "2026年10月24日10:00，UTC+8（虚构练习时间）"
+    };
+    let currentDraft = null;
+    let busy = false;
+
+    function showNotice(message, kind = "success", requestId = "") {
+      $("notice").hidden = false;
+      $("notice").dataset.kind = kind;
+      $("notice").setAttribute("role", kind === "error" ? "alert" : "status");
+      $("notice-message").textContent = message;
+      $("notice-request").textContent = requestId ? "请求编号：" + requestId : "";
+      $("notice-request").hidden = !requestId;
+    }
+    function clearNotice() {
+      $("notice").hidden = true;
+      $("notice-message").textContent = "";
+      $("notice-request").textContent = "";
+    }
+    function confirmationPhrase() {
+      return currentDraft ? "确认创建 " + currentDraft.draft_id : "";
+    }
+    function clearAuthorization() {
+      $("review-checkbox").checked = false;
+      $("confirmation-text").value = "";
+      updateButtons();
+    }
+    function updateButtons() {
+      ["prepare-button", "sample-button", "lookup-button", "cancel-button", "existing-ticket-button"].forEach((id) => { $(id).disabled = busy; });
+      ["question", "lookup-id", "review-checkbox", "confirmation-text"].forEach((id) => { $(id).disabled = busy; });
+      $("confirm-button").disabled = busy || !currentDraft || currentDraft.status !== "pending" || !$("review-checkbox").checked || $("confirmation-text").value !== confirmationPhrase();
+    }
+    function setBusy(value, message = "") {
+      busy = value;
+      $("loading").hidden = !value;
+      $("loading-text").textContent = message;
+      $("prepare-form").setAttribute("aria-busy", String(value));
+      $("confirm-form").setAttribute("aria-busy", String(value));
+      updateButtons();
+    }
+    function resetDraft() {
+      currentDraft = null;
+      clearAuthorization();
+      $("draft-content").hidden = true;
+      $("draft-empty").hidden = false;
+      $("confirm-form").hidden = true;
+      $("submitted-panel").hidden = true;
+      $("ticket-card").hidden = true;
+    }
+    function renderFields(target, data) {
+      const fragment = document.createDocumentFragment();
+      for (const [key, label] of fieldLabels) {
+        const row = document.createElement("div");
+        row.className = "field";
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const detail = document.createElement("dd");
+        detail.textContent = data[key] == null ? "未提供" : String(data[key]);
+        row.append(term, detail);
+        fragment.append(row);
+      }
+      $(target).replaceChildren(fragment);
+    }
+    function renderDraft(record) {
+      currentDraft = record;
+      clearAuthorization();
+      $("draft-empty").hidden = true;
+      $("draft-content").hidden = false;
+      $("draft-id").textContent = record.draft_id;
+      const submitted = record.status === "submitted";
+      $("draft-status").textContent = submitted ? "已提交 · submitted" : "待确认 · pending";
+      $("draft-status").className = "badge" + (submitted ? " submitted" : "");
+      renderFields("draft-fields", record.draft);
+      $("expected-phrase").textContent = confirmationPhrase();
+      $("confirm-form").hidden = submitted;
+      $("submitted-panel").hidden = !submitted;
+      updateButtons();
+    }
+    function displayTime(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value || "未提供");
+      return new Intl.DateTimeFormat("zh-CN", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit", timeZoneName:"short" }).format(date);
+    }
+    function renderTicket(ticket, message) {
+      $("ticket-card").hidden = false;
+      $("ticket-result-message").textContent = message;
+      $("ticket-id").textContent = ticket.ticket_id;
+      $("ticket-status").textContent = ticket.status;
+      $("ticket-draft-id").textContent = "来源草稿：" + ticket.draft_id;
+      $("ticket-created-at").textContent = "创建时间：" + displayTime(ticket.created_at);
+      renderFields("ticket-fields", ticket);
+    }
+    async function api(path, options = {}) {
+      let response;
+      try {
+        response = await fetch(path, {
+          ...options,
+          headers: { "Accept": "application/json", ...(options.body ? { "Content-Type": "application/json" } : {}), ...options.headers }
+        });
+      } catch (_) {
+        throw { message: "无法连接本地服务。请确认服务器已启动后重试。", requestId: "" };
+      }
+      let body;
+      try { body = await response.json(); }
+      catch (_) { throw { message: "服务未返回有效结果，请稍后重试。", requestId: response.headers.get("X-Request-ID") || "" }; }
+      if (!response.ok) {
+        throw { message: body.error?.message || "请求失败，请稍后重试。", requestId: body.error?.request_id || response.headers.get("X-Request-ID") || "" };
+      }
+      return body;
+    }
+    async function runAction(message, action) {
+      if (busy) return;
+      clearNotice();
+      setBusy(true, message);
+      try { await action(); }
+      catch (error) { showNotice(error.message || "操作未完成，请重试。", "error", error.requestId || ""); }
+      finally { setBusy(false); }
+    }
+    $("prepare-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (busy) return;
+      const question = $("question").value.trim();
+      if (!question) { $("question").focus(); return; }
+      resetDraft();
+      runAction("正在整理报修内容，请稍候…", async () => {
+        const result = await api("/api/drafts/prepare", { method: "POST", body: JSON.stringify({ question }) });
+        if (result.status === "needs_information") {
+          showNotice(result.follow_up || "信息还不完整。请补充描述后重新整理草稿。", "warning");
+          return;
+        }
+        if (!result.draft) throw { message: "服务没有返回草稿，请重试。" };
+        renderDraft(result.draft);
+        showNotice("草稿已保存，尚未创建工单。请核对六个字段，再决定是否确认。");
+      });
+    });
+    $("sample-button").addEventListener("click", () => {
+      if (busy) return;
+      resetDraft();
+      runAction("正在保存离线示例草稿…", async () => {
+        const record = await api("/api/drafts", { method: "POST", body: JSON.stringify(offlineSample) });
+        renderDraft(record);
+        showNotice("离线示例已保存为新草稿，尚未创建工单。发生时间为虚构练习时间。");
+      });
+    });
+    $("review-checkbox").addEventListener("change", updateButtons);
+    $("confirmation-text").addEventListener("input", updateButtons);
+    $("cancel-button").addEventListener("click", () => {
+      if (busy || !currentDraft) return;
+      const draftId = currentDraft.draft_id;
+      resetDraft();
+      $("lookup-id").value = draftId;
+      showNotice("已取消本次创建并收起草稿。草稿 " + draftId + " 已保留，可在“找回已有记录”中重新查询。");
+    });
+    $("confirm-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (busy || !currentDraft || currentDraft.status !== "pending" || !$("review-checkbox").checked || $("confirmation-text").value !== confirmationPhrase()) return;
+      const draftId = currentDraft.draft_id;
+      const confirmationText = $("confirmation-text").value;
+      runAction("正在创建本地工单…", async () => {
+        // The server also validates the phrase; browser validation alone is insufficient.
+        const result = await api("/api/drafts/" + encodeURIComponent(draftId) + "/confirm", { method: "POST", body: JSON.stringify({ confirmation_text: confirmationText }) });
+        renderDraft({ ...currentDraft, status: "submitted", ticket_id: result.ticket.ticket_id });
+        renderTicket(result.ticket, result.created ? "本地工单已创建" : "已返回原工单，没有重复创建");
+        showNotice(result.created ? "工单创建成功。请保存工单编号，方便后续查询。" : "这份草稿已有工单，本次返回原工单，没有新增。");
+      });
+    });
+    $("existing-ticket-button").addEventListener("click", () => {
+      if (busy || !currentDraft || currentDraft.status !== "submitted") return;
+      const draftId = currentDraft.draft_id;
+      runAction("正在取回已创建的工单…", async () => {
+        // Submitted drafts already have a ticket. This exercises the idempotent path.
+        const result = await api("/api/drafts/" + encodeURIComponent(draftId) + "/confirm", { method: "POST", body: JSON.stringify({ confirmation_text: "确认创建 " + draftId }) });
+        renderDraft({ ...currentDraft, status: "submitted", ticket_id: result.ticket.ticket_id });
+        renderTicket(result.ticket, result.created ? "本地工单已创建" : "已返回原工单，没有重复创建");
+        showNotice(result.created ? "工单创建成功。" : "已找到原工单；重复提交没有创建新工单。");
+      });
+    });
+    $("lookup-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (busy) return;
+      const id = $("lookup-id").value.trim();
+      if (!/^[DN][0-9a-f]{12}$/.test(id)) { showNotice("请输入 D 或 N 开头的完整编号，例如先创建草稿后复制它的编号。", "warning"); return; }
+      clearAuthorization();
+      if (id.startsWith("D")) resetDraft();
+      else $("ticket-card").hidden = true;
+      runAction("正在查询记录…", async () => {
+        if (id.startsWith("D")) {
+          renderDraft(await api("/api/drafts/" + encodeURIComponent(id)));
+          showNotice(currentDraft.status === "submitted" ? "已载入已提交的草稿，可以查看它关联的工单。" : "已载入草稿，请重新核对内容后再确认。");
+        } else {
+          const ticket = await api("/api/tickets/" + encodeURIComponent(id));
+          renderTicket(ticket, "已找到本地工单");
+          showNotice("已找到工单 " + ticket.ticket_id + "。");
+        }
+      });
+    });
+    api("/health").then((result) => {
+      const ok = result.status === "ok";
+      $("connection").dataset.state = ok ? "ok" : "error";
+      $("connection-text").textContent = ok ? "本地服务已连接" : "本地服务状态异常";
+    }).catch(() => {
+      $("connection").dataset.state = "error";
+      $("connection-text").textContent = "本地服务未连接";
+    });
+  </script>
+</body>
+</html>

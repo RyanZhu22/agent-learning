@@ -9,7 +9,6 @@ from chromadb.config import Settings
 from chromadb.errors import NotFoundError
 from fastembed import TextEmbedding
 
-
 ROOT = Path(__file__).parent
 KNOWLEDGE_DIR = ROOT / "knowledge"
 DATABASE_DIR = ROOT / "artifacts/chroma_day03"

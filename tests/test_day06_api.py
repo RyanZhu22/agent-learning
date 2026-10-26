@@ -1,11 +1,11 @@
 """离线验证第 6 天的 HTTP 边界；所有模型调用都替换为本地函数。"""
 
-from contextlib import closing
 import json
-from pathlib import Path
 import sqlite3
-from tempfile import TemporaryDirectory
 import unittest
+from contextlib import closing
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient

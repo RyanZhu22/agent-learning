@@ -2,11 +2,11 @@
 
 import io
 import json
+import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-import unittest
 from unittest.mock import Mock, patch
 
 from pydantic import ValidationError
@@ -14,7 +14,6 @@ from pydantic import ValidationError
 from day04_draft import TicketDraft
 from day05_agent import confirm_from_console, extract_proposal, main
 from day05_store import TicketStore
-
 
 SAMPLE_PATH = Path(__file__).resolve().parents[1] / "data/day05_draft.json"
 

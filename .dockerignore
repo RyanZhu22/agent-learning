@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+.env
+.env.*
+artifacts
+docs
+tests
+.workbuddy-ai
+.DS_Store

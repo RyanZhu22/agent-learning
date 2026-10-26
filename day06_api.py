@@ -1,17 +1,18 @@
 """第 6 天：用 FastAPI 和网页操作第 5 天的本地草稿、确认与工单。"""
 
-from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 import argparse
 import json
 import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from time import perf_counter
 from typing import Annotated, Callable, Literal
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Path as PathParameter, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Path as PathParameter
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -20,7 +21,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from day04_draft import TicketDraft
 from day05_agent import DraftProposal, propose_with_model
 from day05_store import DEFAULT_DB_PATH, StoreError, TicketStore
-
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_LOG_PATH = ROOT / "artifacts/day06_api.log"
@@ -212,15 +212,19 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--host", default="127.0.0.1",
+                        help="监听地址；容器内需用 0.0.0.0 才能从宿主机访问")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument("--log", type=Path, default=DEFAULT_LOG_PATH)
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("端口必须为 1–65535。")
-    print(f"本地报修工作台：http://127.0.0.1:{args.port}/")
-    print(f"接口文档：http://127.0.0.1:{args.port}/docs")
+    # 监听 0.0.0.0 时，终端仍提示本机可访问的地址。
+    display_host = "127.0.0.1" if args.host in {"0.0.0.0", "::"} else args.host
+    print(f"本地报修工作台：http://{display_host}:{args.port}/")
+    print(f"接口文档：http://{display_host}:{args.port}/docs")
     print(f"日志：{args.log}")
-    uvicorn.run(create_app(args.db, args.log), host="127.0.0.1", port=args.port)
+    uvicorn.run(create_app(args.db, args.log), host=args.host, port=args.port)
 
 
 if __name__ == "__main__":

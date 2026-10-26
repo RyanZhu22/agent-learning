@@ -1,12 +1,12 @@
 """离线验证第 5 天的确认边界、持久化、并发幂等与事务回滚。"""
 
+import sqlite3
+import unittest
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from pathlib import Path
-import sqlite3
 from tempfile import TemporaryDirectory
 from threading import Barrier
-import unittest
 
 from day04_draft import TicketDraft
 from day05_store import StoreError, TicketStore

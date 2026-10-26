@@ -1,0 +1,17 @@
+services:
+  workbench:
+    build: .
+    image: agent-learning:local
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+    volumes:
+      - workbench-data:/app/artifacts
+    restart: unless-stopped
+
+volumes:
+  workbench-data:

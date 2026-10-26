@@ -2,7 +2,6 @@
 
 import json
 
-
 # 类似 Java 的 Map，或 Go 的 map。这里都是模拟数据。
 TICKETS: dict[str, dict[str, str]] = {
     "T1001": {"title": "无法登录", "status": "处理中"},

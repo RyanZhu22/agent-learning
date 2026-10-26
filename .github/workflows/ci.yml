@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: 安装依赖
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: 单元测试
+        run: uv run python -m unittest discover -s tests -v
+
+  eval:
+    name: Offline eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: 缓存向量模型
+        uses: actions/cache@v6
+        with:
+          path: artifacts/embedding_cache
+          key: fastembed-bge-small-zh-v1.5-v1
+
+      - name: 安装依赖
+        run: uv sync --frozen
+
+      - name: 重建知识库索引
+        run: uv run day03_rag.py --index
+
+      - name: 离线评测（9 条，不调用模型）
+        run: uv run day07_eval.py
+
+      - name: 写入任务摘要
+        if: always()
+        run: cat artifacts/day07_summary.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "未生成评测摘要" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传评测报告
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: day07-report
+          path: |
+            artifacts/day07_report.json
+            artifacts/day07_summary.md
+          retention-days: 14
+          if-no-files-found: warn

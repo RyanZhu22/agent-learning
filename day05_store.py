@@ -4,16 +4,15 @@
 幂等边界是 draft_id：同一个草稿重复确认，只能得到同一张工单。
 """
 
+import json
+import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
-import json
 from pathlib import Path
-import sqlite3
 from typing import Iterator
 from uuid import uuid4
 
 from day04_draft import TicketDraft
-
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parent / "artifacts" / "day05_tickets.sqlite3"
 

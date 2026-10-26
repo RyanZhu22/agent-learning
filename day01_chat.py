@@ -6,7 +6,6 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError
 
 from llm_config import create_client
 
-
 # 作业 1：修改这里的风格约束，对同一个问题比较输出。
 SYSTEM_PROMPT = "你是软件产品的客服助手。请用简洁中文回答；未知事实应明确说明。"
 

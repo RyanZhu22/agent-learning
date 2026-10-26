@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from day03_retrieval import build_index, search_docs, show_hits
 from llm_config import create_client
 
-
 ROOT = Path(__file__).parent
 
 

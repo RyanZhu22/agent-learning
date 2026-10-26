@@ -1,0 +1,75 @@
+name: Live eval
+
+# 真实模型评测：慢、花钱、有波动，所以只在手动触发或每周定时跑，不进 PR 门禁。
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 本次运行的原因（会写进任务摘要）
+        required: false
+        default: 手动触发
+  schedule:
+    - cron: "0 1 * * 1" # 每周一 09:00（UTC+8）
+
+concurrency:
+  group: live-eval
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Live eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL || 'deepseek-flash' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: 缓存向量模型
+        uses: actions/cache@v6
+        with:
+          path: artifacts/embedding_cache
+          key: fastembed-bge-small-zh-v1.5-v1
+
+      - name: 安装依赖
+        run: uv sync --frozen
+
+      - name: 检查密钥
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo "::error::未配置 DEEPSEEK_API_KEY，无法运行真实模型评测"
+            exit 1
+          fi
+
+      - name: 重建知识库索引
+        run: uv run day03_rag.py --index
+
+      - name: 真实模型评测（20 条）
+        run: uv run day07_eval.py --live
+
+      - name: 写入任务摘要
+        if: always()
+        run: |
+          echo "触发原因：${{ inputs.reason || '每周定时' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/day07_summary.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "未生成评测摘要" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传评测报告
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: day07-live-report
+          path: |
+            artifacts/day07_report.json
+            artifacts/day07_summary.md
+          retention-days: 30
+          if-no-files-found: warn

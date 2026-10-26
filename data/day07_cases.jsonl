@@ -1,0 +1,20 @@
+{"id":"D7-R01","layer":"retrieval","question":"邮件通知的SMTP端口是多少，使用哪种加密方式？","expected_source":"mail_notifications.md","expected_fact":"587"}
+{"id":"D7-R02","layer":"retrieval","question":"忘记密码后，重置链接有效多久？","expected_source":"password_reset.md","expected_fact":"10分钟"}
+{"id":"D7-R03","layer":"retrieval","question":"连续输错密码导致账号锁定，需要等待多久？","expected_source":"login_lock.md","expected_fact":"15分钟"}
+{"id":"D7-R04","layer":"retrieval","question":"CSV单次导出最多支持多少行？","expected_source":"export_limits.md","expected_fact":"10000"}
+{"id":"D7-R05","layer":"retrieval","question":"上传PDF、Markdown或TXT时，单个文件最大多大？","expected_source":"file_upload.md","expected_fact":"20MB"}
+{"id":"D7-R06","layer":"retrieval","question":"Webhook通知投递失败后最多重试多少次？","expected_source":"webhook_retry.md","expected_fact":"5次"}
+{"id":"D7-K01","layer":"contract","check":"unconfirmed_draft","note":"没有明确确认时，存储层必须拒绝建单"}
+{"id":"D7-K02","layer":"contract","check":"bad_phrase","note":"确认短语与草稿编号不匹配时，接口返回 400 且不建单"}
+{"id":"D7-K03","layer":"contract","check":"idempotent_confirm","note":"同一草稿重复确认，只能得到同一张工单"}
+{"id":"D7-C01","layer":"classify","question":"如何重置账号密码？","expected_intent":"knowledge_qa"}
+{"id":"D7-C02","layer":"classify","question":"查询工单 T1001 的状态","expected_intent":"ticket_query"}
+{"id":"D7-C03","layer":"classify","question":"系统一直返回 500 错误，请帮我报修","expected_intent":"incident_report"}
+{"id":"D7-C04","layer":"classify","question":"产品支持哪些文档格式？","expected_intent":"knowledge_qa"}
+{"id":"D7-D01","layer":"draft","question":"我要报修：邮件通知失败。","expected_status":"needs_information","expected_missing":["reproduction_steps","expected_result","actual_result","occurred_at"]}
+{"id":"D7-D02","layer":"draft","question":"请整理报修草稿。问题描述：邮件通知功能异常，测试邮箱收不到测试邮件。复现步骤：进入通知设置，点击发送测试邮件。期望结果：测试邮箱收到邮件。实际结果：页面提示连接超时，邮箱未收到邮件。发生时间：2026年10月24日10:00，UTC+8。","expected_status":"ready"}
+{"id":"D7-D03","layer":"draft","question":"请整理报修草稿。问题描述：导出报表时页面报错。复现步骤：打开报表页点击导出。期望结果：下载 CSV 文件。实际结果：页面提示导出失败。","expected_status":"needs_information","expected_missing":["occurred_at"]}
+{"id":"D7-A01","layer":"agent","question":"查询工单 T1004 的状态","expect_can_answer":true,"expect_contains":["已解决"],"expect_min_sources":0}
+{"id":"D7-A02","layer":"agent","question":"邮件通知首次发送失败后，最多重试多少次？","expect_can_answer":true,"expect_contains":["4"],"expect_min_sources":1}
+{"id":"D7-A03","layer":"agent","question":"申请退款后，款项需要几个工作日到账？","expect_can_answer":false,"expect_contains":[],"expect_min_sources":0,"note":"资料外问题，正确行为是明确说明资料不足"}
+{"id":"D7-A04","layer":"agent","question":"你好","expect_can_answer":true,"expect_contains":[],"expect_min_sources":0,"note":"普通问候不需要调用工具"}

@@ -1,8 +1,10 @@
 # Python Agent 学习项目
 
+[![CI](https://github.com/RyanZhu22/agent-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/RyanZhu22/agent-learning/actions/workflows/ci.yml)
+
 以 [Agent-Learning-Hub](https://github.com/datawhalechina/Agent-Learning-Hub) 为能力清单，以 [Hello-Agents](https://github.com/datawhalechina/hello-agents) 为主教材。目标是逐步完成一个知识库与工单助手。
 
-每天约 3 小时。目前已提供第 1–6 天的练习，其余功能随学习推进。
+每天约 3 小时。目前已提供第 1–7 天的练习。
 
 | 日期 | 实践目标 |
 | --- | --- |
@@ -190,6 +192,81 @@ uv run day05_agent.py get Nxxx
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
+
+## 第 7 天：固定评测、失败分析与部署说明
+
+阅读 [第 7 天讲义](docs/day07.md)。前六天证明“能跑通”，今天用 20 条固定案例回答“有没有变坏”，并列出上线前的差距。
+
+先跑离线评测，不需要密钥和网络：
+
+```sh
+uv run day07_eval.py
+```
+
+离线部分只做检索和确认边界，共 9 条；分类、草稿和端到端 Agent 共 11 条需要真实模型，加 `--live` 运行：
+
+```sh
+uv run day07_eval.py --live
+```
+
+报告写入 `artifacts/day07_report.json`，可读摘要写入 `artifacts/day07_summary.md`。全部通过时退出码为 0，有失败时为 1，可直接用于 CI。
+
+故意调高相似度阈值，观察失败分析能否定位到层：
+
+```sh
+uv run day07_eval.py --min-similarity 0.8
+uv run day07_eval.py --top-k 1
+uv run day07_eval.py --layer retrieval
+uv run day07_eval.py --list
+```
+
+`day07_eval.py` 负责加载案例、分层执行、评分与写报告，`data/day07_cases.jsonl` 是固定案例集，`tests/test_day07_eval.py` 离线验证评分口径与确认边界。
+检索通过只代表资料被召回，不代表回答正确；通过率也不代表覆盖了全部输入。
+部署步骤与上线前必须补的身份、权限、HTTPS、并发、密钥、限流等差距，见讲义第 110–150 分钟一节。
+
+## 持续集成与发布
+
+三条流水线，职责分开：
+
+| 工作流 | 触发 | 做什么 |
+| --- | --- | --- |
+| `ci.yml` | push 到 `main`、PR、手动 | ruff 检查 + 56 个单元测试；另一个作业建索引后跑 9 条离线评测 |
+| `eval-live.yml` | 手动、每周一 09:00 | 20 条真实模型评测，需要 `DEEPSEEK_API_KEY` |
+| `release.yml` | 打 `v*` 标签 | 复跑检查 → 构建镜像推到 GHCR → 创建 Release |
+
+CI 里**不跑真实模型**：慢、花钱、有波动。模型评测单独一条流水线，失败不会挡住日常提交。
+
+本地等价命令：
+
+```sh
+uv sync --frozen
+uv run ruff check .
+uv run python -m unittest discover -s tests
+uv run day03_rag.py --index && uv run day07_eval.py
+```
+
+容器化运行（镜像内以非 root 用户启动，带 `/health` 探活）：
+
+```sh
+docker build -t agent-learning:local .
+docker run --rm -p 8000:8000 --env-file .env agent-learning:local
+```
+
+或直接用 Compose，工单数据放在命名卷里，重启不丢：
+
+```sh
+docker compose up --build
+```
+
+发布一个版本：
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+流水线会把镜像推到 `ghcr.io/ryanzhu22/agent-learning`，并创建 Release。
+首次发布后，在仓库 Settings → Actions 里确认工作流权限为 “Read and write”；`eval-live.yml` 需要在 Secrets 中配置 `DEEPSEEK_API_KEY`，未配置时会明确报错而不是静默跳过。
 
 ## 参考资料
 
